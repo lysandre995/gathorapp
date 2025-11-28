@@ -1,0 +1,94 @@
+sequenceDiagram
+    participant User as Premium User
+    participant Frontend as Angular Frontend
+    participant WSEndpoint as WebSocket /ws
+    participant Controller as ChatWebSocketController
+    participant Service as ChatService
+    participant Broker as STOMP Broker
+    participant DB as Database
+    participant OtherUsers as Other Participants
+
+    Note over User,OtherUsers: Real-time Chat Flow with WebSocket
+
+    User->>Frontend: Connect to chat
+    activate Frontend
+
+    Frontend->>WSEndpoint: CONNECT /ws (with JWT token)
+    activate WSEndpoint
+    WSEndpoint->>WSEndpoint: Authenticate via WebSocketAuthInterceptor
+    WSEndpoint-->>Frontend: CONNECTED
+    deactivate WSEndpoint
+
+    Frontend->>Broker: SUBSCRIBE /topic/chat/{chatId}
+    activate Broker
+    Broker-->>Frontend: SUBSCRIBED
+    deactivate Broker
+
+    Note over Frontend: User types message
+
+    User->>Frontend: Send message: "Hello everyone!"
+    Frontend->>Controller: SEND /app/chat/{outingId}/send
+    activate Controller
+
+    Controller->>Service: sendMessage(outingId, request, userId)
+    activate Service
+
+    Service->>DB: Verify user is participant/organizer
+    DB-->>Service: Authorization OK
+
+    Service->>DB: Get or create chat
+    DB-->>Service: Chat
+
+    Service->>Service: Check if chat is active
+
+    alt Chat is inactive
+        Service-->>Controller: RuntimeException (chat deactivated)
+        Controller->>Broker: Send error to /user/queue/errors
+        Broker-->>Frontend: Error message
+        Frontend-->>User: "Chat is no longer active"
+    else Chat is active
+        Service->>DB: Save ChatMessage
+        DB-->>Service: ChatMessage saved
+
+        Service->>Service: Notify other participants
+        Service-->>Controller: ChatMessageResponse
+        deactivate Service
+
+        Note over Controller,Broker: Broadcast to all subscribers
+        Controller->>Broker: convertAndSend(/topic/chat/{chatId}, message)
+        activate Broker
+
+        par Broadcast to all participants
+            Broker->>Frontend: Message delivered
+            Frontend-->>User: Display message
+        and
+            Broker->>OtherUsers: Message delivered
+            OtherUsers->>OtherUsers: Display message + notification
+        end
+        deactivate Broker
+        deactivate Controller
+    end
+
+    Note over User,OtherUsers: Typing Indicator (Optional)
+
+    User->>Frontend: User is typing...
+    Frontend->>Controller: SEND /app/chat/{outingId}/typing
+    activate Controller
+    Controller->>Service: getOrCreateChat(outingId)
+    Service-->>Controller: Chat
+    Controller->>Broker: convertAndSend(/topic/chat/{chatId}/typing, indicator)
+    Broker->>OtherUsers: Typing indicator
+    OtherUsers->>OtherUsers: Show "User is typing..."
+    deactivate Controller
+
+    Note over Service,DB: Automatic Chat Deactivation (Scheduled)
+
+    Service->>Service: Daily scheduler (2:00 AM)
+    Service->>DB: Find chats where outingDate + 7 days < now
+    DB-->>Service: List of expired chats
+    loop For each expired chat
+        Service->>DB: Set chat.active = false
+        DB-->>Service: Chat deactivated
+    end
+
+    deactivate Frontend

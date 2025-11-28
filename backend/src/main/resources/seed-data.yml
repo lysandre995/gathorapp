@@ -1,0 +1,128 @@
+users:
+  - name: "Mario Rossi"
+    email: "mario@example.com"
+    password: "password123"
+    role: "USER"
+
+  - name: "Laura Bianchi"
+    email: "laura@example.com"
+    password: "password123"
+    role: "PREMIUM"
+
+  - name: "Pizzeria Da Antonio"
+    email: "antonio@pizzeria.com"
+    password: "password123"
+    role: "BUSINESS"
+
+  - name: "Pub The Irish"
+    email: "irish@pub.com"
+    password: "password123"
+    role: "BUSINESS"
+
+  - name: "Admin User"
+    email: "admin@gathorapp.com"
+    password: "password123"
+    role: "ADMIN"
+
+events:
+  - title: "Pizza Night - Aperitivo with Live Music"
+    description: "Join us for an amazing pizza tasting with live music! Special discount for groups."
+    location: "Piazza Sant'Oronzo, Lecce"
+    latitude: 40.3515
+    longitude: 18.1750
+    daysFromNow: 3
+    hour: 19
+    minute: 0
+    creatorEmail: "antonio@pizzeria.com"
+
+  - title: "Irish Folk Music Night"
+    description: "Traditional Irish music with free Guinness for the first 50 people!"
+    location: "Via Libertini, Lecce"
+    latitude: 40.3520
+    longitude: 18.1740
+    daysFromNow: 5
+    hour: 21
+    minute: 0
+    creatorEmail: "irish@pub.com"
+
+  - title: "Cooking Workshop: Pasta Fresca"
+    description: "Learn how to make traditional Apulian pasta with our chef!"
+    location: "Università del Salento, Lecce"
+    latitude: 40.3356
+    longitude: 18.1208
+    daysFromNow: 7
+    hour: 15
+    minute: 0
+    creatorEmail: "antonio@pizzeria.com"
+
+  - title: "Aperitivo Universitario"
+    description: "Special student aperitivo with 50% discount!"
+    location: "Piazza Mazzini, Lecce"
+    latitude: 40.3525
+    longitude: 18.1755
+    daysFromNow: 10
+    hour: 18
+    minute: 30
+    creatorEmail: "irish@pub.com"
+
+rewards:
+  - title: "Free Pizza Margherita"
+    description: "Get a free pizza margherita when you bring 5 friends!"
+    requiredParticipants: 5
+    eventTitle: "Pizza Night - Aperitivo with Live Music"
+    businessEmail: "antonio@pizzeria.com"
+
+  - title: "Free Guinness Pint"
+    description: "Free pint of Guinness for groups of 3 or more!"
+    requiredParticipants: 3
+    eventTitle: "Irish Folk Music Night"
+    businessEmail: "irish@pub.com"
+
+outings:
+  - title: "Pizza Night Group - University Students"
+    description: "Let's go together to the pizza night! Looking for 6 people."
+    location: "Piazza Sant'Oronzo, Lecce"
+    latitude: 40.3515
+    longitude: 18.1750
+    daysFromNow: 3
+    hour: 18
+    minute: 45
+    maxParticipants: 6
+    organizerEmail: "laura@example.com"
+    eventTitle: "Pizza Night - Aperitivo with Live Music"
+
+  - title: "Irish Music Lovers"
+    description: "Who wants to join for Irish music night? We can get the free Guinness!"
+    location: "Via Libertini, Lecce"
+    latitude: 40.3520
+    longitude: 18.1740
+    daysFromNow: 5
+    hour: 20
+    minute: 30
+    maxParticipants: 4
+    organizerEmail: "laura@example.com"
+    eventTitle: "Irish Folk Music Night"
+
+  - title: "Beach Volleyball - San Cataldo"
+    description: "Looking for people to play beach volleyball this weekend!"
+    location: "Spiaggia di San Cataldo, Lecce"
+    latitude: 40.3161
+    longitude: 18.2006
+    daysFromNow: 2
+    hour: 16
+    minute: 0
+    maxParticipants: 8
+    organizerEmail: "laura@example.com"
+    eventTitle: null
+
+  - title: "Study Group - Computer Science"
+    description: "Study group for the upcoming exam. Library meeting room reserved."
+    location: "Biblioteca di Ingegneria, Università del Salento"
+    latitude: 40.3356
+    longitude: 18.1208
+    daysFromNow: 1
+    hour: 14
+    minute: 0
+    maxParticipants: 10
+    organizerEmail: "mario@example.com"
+    eventTitle: null

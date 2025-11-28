@@ -1,0 +1,60 @@
+sequenceDiagram
+    participant User as User (Frontend)
+    participant Controller as OutingController
+    participant Service as OutingService
+    participant Observer as NotificationManager
+    participant PersistObs as PersistenceObserver
+    participant WSobs as WebSocketObserver
+    participant DB as Database
+    participant WS as WebSocket
+
+    User->>Controller: POST /api/outings/join/{id}
+    activate Controller
+    
+    Controller->>Service: joinOuting(outingId, userId)
+    activate Service
+    
+    Service->>DB: findOuting(id)
+    DB-->>Service: Outing
+    
+    Service->>Service: validateParticipation()
+    
+    alt Outing is full
+        Service-->>Controller: OutingFullException
+        Controller-->>User: 400 Bad Request
+    else Outing available
+        Service->>DB: createParticipation()
+        activate DB
+        DB-->>Service: Participation created
+        deactivate DB
+        
+        Note over Service,Observer: Observer Pattern activated
+        Note over Observer: MULTITHREADING: parallelStream() for concurrent notification
+        Service->>Observer: notifyNewParticipation(participation)
+        activate Observer
+
+        par Persistence Observer [ASYNC]
+            Observer->>PersistObs: update(participation)
+            activate PersistObs
+            Note over PersistObs: Thread-safe: CopyOnWriteArrayList
+            PersistObs->>DB: saveNotification()
+            DB-->>PersistObs: Notification saved
+            deactivate PersistObs
+        and WebSocket Observer [ASYNC]
+            Observer->>WSobs: update(participation)
+            activate WSobs
+            Note over WSobs: Non-blocking notification delivery
+            WSobs->>WS: sendToOrganizer()
+            WS-->>User: Real-time notification
+            deactivate WSobs
+        end
+
+        deactivate Observer
+        
+        Service-->>Controller: ParticipationDTO
+        deactivate Service
+        Controller-->>User: 200 OK (Participation)
+        deactivate Controller
+    end
+
+    Note over User,WS: User receives notification via WebSocket

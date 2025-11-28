@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: gathorapp
+
+  # Disable Security for now (we will enable it later)
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+
+  # Database H2 on file (persists data)
+  datasource:
+    url: jdbc:h2:file:./data/gathorapp;AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  # Console H2 (see the DB via browser)
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  # JPA/Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: update # Maintains data between restarts (use create-drop only for testing)
+    show-sql: true # Shows SQL queries in the log
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true # Formats SQL queries for readability
+# JWT Configuration
+jwt:
+  secret: my-super-secret-key-for-jwt-tokens-must-be-long-enough
+  access-token-expiration: 900000 # 15 minutes
+  refresh-token-expiration: 604800000 # 7 days
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.alfano.gathorapp: DEBUG
+    org.hibernate.SQL: DEBUG
+
+# Server
+server:
+  port: 8080

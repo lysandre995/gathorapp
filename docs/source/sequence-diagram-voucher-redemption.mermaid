@@ -1,0 +1,129 @@
+sequenceDiagram
+    participant PremiumUser as Premium User
+    participant Business as Business Owner
+    participant Frontend as Frontend
+    participant VoucherCtrl as VoucherController
+    participant VoucherSvc as VoucherService
+    participant PartSvc as ParticipationService
+    participant DB as Database
+    participant QRGen as QR Code Generator
+
+    Note over PremiumUser,QRGen: Voucher Issuance Flow
+
+    PremiumUser->>Frontend: Create outing linked to event
+    activate Frontend
+    Frontend->>DB: Create Outing (linked to event with reward)
+    DB-->>Frontend: Outing created
+
+    PremiumUser->>Frontend: Approve 5+ participants
+    Frontend->>PartSvc: approveParticipation(participationId)
+    activate PartSvc
+    PartSvc->>DB: Update participation status to APPROVED
+    DB-->>PartSvc: Participation approved
+
+    Note over PartSvc,VoucherSvc: Check if Premium user earned reward
+    PartSvc->>VoucherSvc: checkAndIssueVoucher(outingId, userId)
+    activate VoucherSvc
+
+    VoucherSvc->>DB: Get outing + event + rewards
+    DB-->>VoucherSvc: Outing, Event, Rewards
+
+    VoucherSvc->>VoucherSvc: Verify user is Premium organizer
+    VoucherSvc->>VoucherSvc: Verify outing linked to event
+
+    VoucherSvc->>DB: Count approved participants
+    DB-->>VoucherSvc: participantCount = 5
+
+    alt Participant count >= required (e.g., 5)
+        VoucherSvc->>DB: Check if voucher already exists
+        DB-->>VoucherSvc: No existing voucher
+
+        VoucherSvc->>QRGen: Generate unique QR code
+        QRGen-->>VoucherSvc: "VOUCHER-ABC123"
+
+        VoucherSvc->>DB: Create Voucher (status=ACTIVE, expires in 60 days)
+        DB-->>VoucherSvc: Voucher created
+        VoucherSvc-->>PartSvc: Voucher issued
+        deactivate VoucherSvc
+        PartSvc-->>Frontend: Participation approved + voucher notification
+        deactivate PartSvc
+        Frontend-->>PremiumUser: "You earned a reward! Check your vouchers"
+    else Participant count < required
+        VoucherSvc-->>PartSvc: No voucher (insufficient participants)
+        PartSvc-->>Frontend: Participation approved
+        Frontend-->>PremiumUser: "Participation approved"
+    end
+    deactivate Frontend
+
+    Note over PremiumUser,Business: Voucher Redemption Flow
+
+    PremiumUser->>Frontend: View My Vouchers
+    activate Frontend
+    Frontend->>VoucherCtrl: GET /api/vouchers/my/active
+    activate VoucherCtrl
+    VoucherCtrl->>VoucherSvc: getActiveVouchers(userId)
+    activate VoucherSvc
+    VoucherSvc->>DB: Find active vouchers for user
+    DB-->>VoucherSvc: List of vouchers
+    VoucherSvc-->>VoucherCtrl: VoucherResponse[]
+    deactivate VoucherSvc
+    VoucherCtrl-->>Frontend: Voucher list with QR codes
+    deactivate VoucherCtrl
+    Frontend-->>PremiumUser: Display vouchers
+    deactivate Frontend
+
+    Note over Business: Business scans QR code
+
+    PremiumUser->>Business: Show QR code "VOUCHER-ABC123"
+    Business->>Frontend: Scan QR code
+    activate Frontend
+    Frontend->>VoucherCtrl: POST /api/vouchers/redeem/{qrCode}
+    activate VoucherCtrl
+    VoucherCtrl->>VoucherSvc: redeemVoucher(qrCode, businessUserId)
+    activate VoucherSvc
+
+    Note over VoucherSvc,DB: MULTITHREADING: Pessimistic Write Lock
+    VoucherSvc->>DB: Find voucher by QR code [@Lock(PESSIMISTIC_WRITE)]
+    Note over DB: Row-level lock prevents concurrent redemptions
+    DB-->>VoucherSvc: Voucher (LOCKED)
+
+    VoucherSvc->>VoucherSvc: Verify business owns the reward
+    alt Business doesn't own reward
+        VoucherSvc-->>VoucherCtrl: RuntimeException (Unauthorized)
+        VoucherCtrl-->>Frontend: 403 Forbidden
+        Frontend-->>Business: "This voucher is not for your business"
+    else Business authorized
+        VoucherSvc->>VoucherSvc: voucher.redeem()
+
+        alt Voucher expired
+            VoucherSvc-->>VoucherCtrl: IllegalStateException (Expired)
+            VoucherCtrl-->>Frontend: 400 Bad Request
+            Frontend-->>Business: "Voucher has expired"
+        else Voucher already redeemed
+            VoucherSvc-->>VoucherCtrl: IllegalStateException (Already redeemed)
+            VoucherCtrl-->>Frontend: 400 Bad Request
+            Frontend-->>Business: "Voucher already used"
+        else Voucher valid
+            Note over VoucherSvc: Lock held until transaction commit
+            VoucherSvc->>DB: Update voucher (status=REDEEMED, redeemedAt=now)
+            DB-->>VoucherSvc: Voucher updated
+            Note over DB: Lock released on transaction commit
+            VoucherSvc-->>VoucherCtrl: VoucherResponse (REDEEMED)
+            deactivate VoucherSvc
+            VoucherCtrl-->>Frontend: 200 OK (Voucher redeemed)
+            deactivate VoucherCtrl
+            Frontend-->>Business: "Voucher redeemed successfully!"
+            deactivate Frontend
+            Business-->>PremiumUser: "Enjoy your reward!"
+        end
+    end
+
+    Note over VoucherSvc,DB: Automatic Expiration (Scheduled)
+
+    VoucherSvc->>VoucherSvc: Daily scheduler (3:00 AM)
+    VoucherSvc->>DB: Find vouchers where expiresAt < now AND status=ACTIVE
+    DB-->>VoucherSvc: List of expired vouchers
+    loop For each expired voucher
+        VoucherSvc->>DB: Set status = EXPIRED
+        DB-->>VoucherSvc: Voucher expired
+    end

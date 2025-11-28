@@ -1,0 +1,58 @@
+graph TB
+    subgraph System["GathorApp - Events & Outings Management"]
+        direction TB
+
+        subgraph EventManagement["Event & Outing Management"]
+            UC1[View Events/Outings]
+            UC2[Create Event]
+            UC3[Create Outing]
+            UC4[Join Outing]
+            UC5[Approve/Reject Participation]
+            UC13[Search Nearby Events]
+            UC14[View on Map]
+        end
+
+        UC9[Receive Notifications]
+    end
+
+    %% Actors
+    BaseUser((Base User))
+    Premium((Premium User))
+    Business((Business User))
+
+    %% Base User Use Cases
+    BaseUser --> UC1
+    BaseUser --> UC3
+    BaseUser --> UC4
+    BaseUser --> UC5
+    BaseUser --> UC9
+    BaseUser --> UC13
+    BaseUser --> UC14
+
+    %% Premium User Use Cases (inherits from Base User)
+    Premium --> UC1
+    Premium --> UC3
+    Premium --> UC4
+    Premium --> UC5
+    Premium --> UC9
+    Premium --> UC13
+    Premium --> UC14
+
+    %% Business User Use Cases
+    Business --> UC1
+    Business --> UC2
+    Business --> UC9
+    Business --> UC13
+    Business --> UC14
+
+    %% Use Case Dependencies
+    UC3 -.->|extends| UC1
+    UC13 -.->|extends| UC1
+    UC14 -.->|requires| UC13
+
+    %% Styling
+    style BaseUser fill:#4A90E2,stroke:#2E5C8A,color:#fff
+    style Premium fill:#F5A623,stroke:#C17D11,color:#fff
+    style Business fill:#7ED321,stroke:#5FA319,color:#fff
+
+    style EventManagement fill:#E8F4F8,stroke:#4A90E2

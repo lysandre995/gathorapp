@@ -1,0 +1,35 @@
+graph TB
+    subgraph System["GathorApp - Administration"]
+        direction TB
+
+        subgraph Administration["Administration"]
+            UC10[Manage Users]
+            UC20[View Platform Statistics]
+            UC21[Ban/Unban Users]
+            UC22[Change User Roles]
+        end
+
+        UC9[Receive Notifications]
+        UC15[Receive Real-time Notifications]
+        UC23[Review User Reports]
+    end
+
+    %% Actors
+    Admin((Admin))
+
+    %% Admin Use Cases (includes maintenance functions and report management)
+    Admin --> UC10
+    Admin --> UC9
+    Admin --> UC15
+    Admin --> UC20
+    Admin --> UC21
+    Admin --> UC22
+    Admin --> UC23
+
+    %% Use Case Dependencies
+    UC23 -.->|may trigger| UC21
+    UC15 -.->|notifies about| UC23
+
+    %% Styling
+    style Admin fill:#D0021B,stroke:#9B0115,color:#fff
+    style Administration fill:#F3E8FC,stroke:#9013FE

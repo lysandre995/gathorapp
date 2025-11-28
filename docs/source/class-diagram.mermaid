@@ -1,0 +1,323 @@
+classDiagram
+    %% Core Entities
+    class User {
+        -UUID id
+        -String name
+        -String email
+        -String passwordHash
+        -Role role
+        -LocalDateTime createdAt
+        -LocalDateTime updatedAt
+        +getId() UUID
+        +getRole() Role
+        +setRole(Role) void
+    }
+
+    class Event {
+        -UUID id
+        -String title
+        -String description
+        -String location
+        -Double latitude
+        -Double longitude
+        -LocalDateTime eventDate
+        -User creator
+        -List~Outing~ outings
+        -List~Reward~ rewards
+        -List~Review~ reviews
+        -LocalDateTime createdAt
+        +addReward(Reward) void
+        +getParticipantsCount() int
+    }
+
+    class Outing {
+        -UUID id
+        -String title
+        -String description
+        -String location
+        -Double latitude
+        -Double longitude
+        -LocalDateTime outingDate
+        -int maxParticipants
+        -User organizer
+        -Event event
+        -List~Participation~ participations
+        -Chat chat
+        -LocalDateTime createdAt
+        +isFull() boolean
+        +addParticipant(User) Participation
+        +isLinkedToEvent() boolean
+    }
+
+    class Participation {
+        -UUID id
+        -User user
+        -Outing outing
+        -ParticipationStatus status
+        -LocalDateTime joinedAt
+        +approve() void [synchronized, SERIALIZABLE]
+        +reject() void [synchronized, SERIALIZABLE]
+    }
+
+    class Reward {
+        -UUID id
+        -String title
+        -String description
+        -int requiredParticipants
+        -String qrCode
+        -Event event
+        -User business
+        -LocalDateTime createdAt
+        +generateQRCode() String
+        +isEligible(User, int) boolean
+    }
+
+    class Voucher {
+        -UUID id
+        -User user
+        -Reward reward
+        -Outing outing
+        -String qrCode
+        -VoucherStatus status
+        -LocalDateTime issuedAt
+        -LocalDateTime redeemedAt
+        -LocalDateTime expiresAt
+        +redeem() void [pessimistic lock]
+        +isExpired() boolean
+        +canBeRedeemed() boolean
+    }
+
+    class Review {
+        -UUID id
+        -int rating
+        -String comment
+        -User reviewer
+        -Event event
+        -Outing outing
+        -LocalDateTime createdAt
+        +validate() boolean
+    }
+
+    class Chat {
+        -UUID id
+        -Outing outing
+        -List~ChatMessage~ messages
+        -boolean active
+        -LocalDateTime deactivatedAt
+        -LocalDateTime createdAt
+        +sendMessage(User, String) ChatMessage
+        +deactivate() void
+    }
+
+    class ChatMessage {
+        -UUID id
+        -String content
+        -User sender
+        -Chat chat
+        -LocalDateTime timestamp
+        +isFromUser(User) boolean
+    }
+
+    class Notification {
+        -UUID id
+        -String title
+        -String message
+        -NotificationType type
+        -User recipient
+        -boolean read
+        -UUID relatedEntityId
+        -String relatedEntityType
+        -LocalDateTime createdAt
+        +markAsRead() void
+    }
+
+    class RefreshToken {
+        -UUID id
+        -String token
+        -User user
+        -LocalDateTime expiresAt
+        -LocalDateTime createdAt
+        +isExpired() boolean
+        +isValid() boolean
+    }
+
+    class Report {
+        -UUID id
+        -User reporter
+        -User reportedUser
+        -ReportType type
+        -String reason
+        -UUID relatedEntityId
+        -String relatedEntityType
+        -ReportStatus status
+        -LocalDateTime createdAt
+        -LocalDateTime reviewedAt
+        -User reviewedBy
+        +markAsReviewed(User) void
+        +dismiss(User) void
+    }
+
+    %% Enums
+    class Role {
+        <<enumeration>>
+        USER
+        PREMIUM
+        BUSINESS
+        ADMIN
+    }
+
+    class ParticipationStatus {
+        <<enumeration>>
+        PENDING
+        APPROVED
+        REJECTED
+    }
+
+    class VoucherStatus {
+        <<enumeration>>
+        ACTIVE
+        REDEEMED
+        EXPIRED
+        CANCELLED
+    }
+
+    class NotificationType {
+        <<enumeration>>
+        NEW_EVENT
+        OUTING_CREATED
+        PARTICIPATION_REQUEST
+        PARTICIPATION_APPROVED
+        PARTICIPATION_REJECTED
+        NEW_MESSAGE
+        REWARD_AVAILABLE
+        VOUCHER_ISSUED
+    }
+
+    class ReportType {
+        <<enumeration>>
+        INAPPROPRIATE_BEHAVIOR
+        SPAM
+        MISLEADING_ADVERTISING
+        OFFENSIVE_CONTENT
+    }
+
+    class ReportStatus {
+        <<enumeration>>
+        PENDING
+        REVIEWED
+        DISMISSED
+    }
+
+    %% Design Pattern: Strategy Pattern (User Limitations)
+    class UserLimitationStrategy {
+        <<interface>>
+        +canCreateOuting(User, int) boolean
+        +getMaxParticipants(User) int
+        +getMonthlyOutingLimit(User) int
+    }
+
+    class BaseUserStrategy {
+        +canCreateOuting(User, int) boolean
+        +getMaxParticipants(User) int
+        +getMonthlyOutingLimit(User) int
+    }
+
+    class PremiumUserStrategy {
+        +canCreateOuting(User, int) boolean
+        +getMaxParticipants(User) int
+        +getMonthlyOutingLimit(User) int
+    }
+
+    class BusinessUserStrategy {
+        +canCreateOuting(User, int) boolean
+        +getMaxParticipants(User) int
+        +getMonthlyOutingLimit(User) int
+    }
+
+    class UserStrategyFactory {
+        +getStrategy(Role) UserLimitationStrategy
+    }
+
+    %% Design Pattern: Observer Pattern (Notifications)
+    class NotificationSubject {
+        <<interface>>
+        +attach(NotificationObserver) void
+        +detach(NotificationObserver) void
+        +notifyObservers(NotificationEvent) void
+    }
+
+    class NotificationObserver {
+        <<interface>>
+        +update(NotificationEvent) void
+    }
+
+    class NotificationManager {
+        <<thread-safe>>
+        -CopyOnWriteArrayList~NotificationObserver~ observers
+        +attach(NotificationObserver) void
+        +detach(NotificationObserver) void
+        +notifyObservers(NotificationEvent) void [parallelStream]
+    }
+
+    class PersistenceNotificationObserver {
+        <<concurrent>>
+        +update(NotificationEvent) void [async]
+    }
+
+    class WebSocketNotificationObserver {
+        <<concurrent>>
+        +update(NotificationEvent) void [async]
+    }
+
+    %% Relationships - Core Entities
+    User "1" -- "0..*" Event : creates
+    User "1" -- "0..*" Outing : organizes
+    User "1" -- "0..*" Participation : participates
+    User "1" -- "0..*" Review : writes
+    User "1" -- "0..*" Reward : offers
+    User "1" -- "0..*" Voucher : earns
+    User "1" -- "0..*" ChatMessage : sends
+    User "1" -- "0..*" Notification : receives
+    User "1" -- "0..*" RefreshToken : has
+    User "1" -- "0..*" Report : submits
+    User "1" -- "0..*" Report : is_reported_in
+    User "0..1" -- "0..*" Report : reviews
+
+    Event "0..1" -- "0..*" Outing : linked_to
+    Event "1" -- "0..*" Report : can_be_reported
+    Event "1" -- "0..*" Reward : offers
+    Event "1" -- "0..*" Review : receives
+
+    Outing "1" -- "0..*" Participation : has
+    Outing "1" -- "1" Chat : has
+    Outing "1" -- "0..*" Review : receives
+    Outing "1" -- "0..*" Voucher : generates
+    Outing "1" -- "0..*" Report : can_be_reported
+
+    Reward "1" -- "0..*" Voucher : creates
+
+    Chat "1" -- "0..*" ChatMessage : contains
+
+    User -- Role : has
+    Participation -- ParticipationStatus : has
+    Voucher -- VoucherStatus : has
+    Notification -- NotificationType : has
+    Report -- ReportType : has
+    Report -- ReportStatus : has
+
+    %% Relationships - Strategy Pattern
+    UserLimitationStrategy <|.. BaseUserStrategy : implements
+    UserLimitationStrategy <|.. PremiumUserStrategy : implements
+    UserLimitationStrategy <|.. BusinessUserStrategy : implements
+    UserStrategyFactory ..> UserLimitationStrategy : creates
+
+    %% Relationships - Observer Pattern
+    NotificationSubject <|.. NotificationManager : implements
+    NotificationObserver <|.. PersistenceNotificationObserver : implements
+    NotificationObserver <|.. WebSocketNotificationObserver : implements
+    NotificationManager o-- NotificationObserver : observes
+
+    %% Multithreading Strategy Notes
+    note for NotificationManager "Thread-safe notification delivery using:\n- CopyOnWriteArrayList for observer management\n- parallelStream() for concurrent observer notification\n- No blocking during notification dispatch"
+    note for Participation "Concurrency control for participation approval:\n- @Transactional(isolation = SERIALIZABLE)\n- synchronized methods to prevent race conditions\n- Pessimistic locking on outing entity"
+    note for Voucher "Pessimistic locking strategy:\n- @Lock(PESSIMISTIC_WRITE) on voucher retrieval\n- Prevents double redemption\n- Ensures voucher state consistency"

@@ -1,0 +1,84 @@
+graph TB
+    subgraph System["GathorApp - Communication & Rewards"]
+        direction TB
+
+        subgraph Communication["Communication"]
+            UC6[Send Chat Message]
+            UC12[View Chat History]
+            UC15[Receive Real-time Notifications]
+        end
+
+        subgraph Rewards["Rewards & Vouchers"]
+            UC7[Create Reward]
+            UC11[Generate Reward QR Code]
+            UC16[View My Vouchers]
+            UC17[Redeem Voucher via QR]
+            UC18[Check Voucher Eligibility]
+        end
+
+        subgraph ReviewsRatings["Reviews & Ratings"]
+            UC8[Leave Review]
+            UC19[View Event/Outing Reviews]
+        end
+
+        UC9[Receive Notifications]
+    end
+
+    %% Actors
+    BaseUser((Base User))
+    Premium((Premium User))
+    Business((Business User))
+    Admin((Admin))
+
+    %% Base User Use Cases
+    BaseUser --> UC6
+    BaseUser --> UC8
+    BaseUser --> UC9
+    BaseUser --> UC12
+    BaseUser --> UC19
+
+    %% Premium User Use Cases (inherits from Base User)
+    Premium --> UC6
+    Premium --> UC8
+    Premium --> UC9
+    Premium --> UC12
+    Premium --> UC16
+    Premium --> UC18
+    Premium --> UC19
+
+    %% Business User Use Cases
+    Business --> UC7
+    Business --> UC9
+    Business --> UC11
+    Business --> UC17
+    Business --> UC19
+
+    %% Admin Use Cases
+    Admin --> UC9
+    Admin --> UC15
+
+    %% Use Case Dependencies
+    UC7 -.->|requires| UC2["Create Event"]
+    UC11 -.->|requires| UC7
+    UC6 -.->|requires| UC4["Join Outing"]
+    UC12 -.->|requires| UC4["Join Outing"]
+    UC17 -.->|requires| UC16
+    UC18 -.->|triggers| UC16
+    UC16 -.->|created by| UC5["Approve Participation"]
+
+    %% External dependencies (shown as notes)
+    UC2["Create Event"]:::external
+    UC4["Join Outing"]:::external
+    UC5["Approve Participation"]:::external
+
+    %% Styling
+    style BaseUser fill:#4A90E2,stroke:#2E5C8A,color:#fff
+    style Premium fill:#F5A623,stroke:#C17D11,color:#fff
+    style Business fill:#7ED321,stroke:#5FA319,color:#fff
+    style Admin fill:#D0021B,stroke:#9B0115,color:#fff
+
+    style Communication fill:#FFF4E6,stroke:#F5A623
+    style Rewards fill:#F0FCE8,stroke:#7ED321
+    style ReviewsRatings fill:#FCE8F3,stroke:#D0021B
+
+    classDef external fill:#E0E0E0,stroke:#999,stroke-dasharray: 5 5

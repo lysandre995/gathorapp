@@ -1,0 +1,212 @@
+# ===========================================
+# GathorApp Monorepo - Root .gitignore
+# ===========================================
+
+# ===========================================
+# BACKEND (Spring Boot + Gradle)
+# ===========================================
+
+# Gradle
+backend/.gradle/
+backend/build/
+backend/gradle/
+#backend/gradlew
+#backend/gradlew.bat
+!backend/gradle/wrapper/gradle-wrapper.jar
+!backend/**/src/main/**/build/
+!backend/**/src/test/**/build/
+
+# Spring Boot
+backend/HELP.md
+backend/target/
+backend/bin/
+!backend/**/src/main/**/bin/
+!backend/**/src/test/**/bin/
+
+# IDE - IntelliJ IDEA
+backend/.idea/
+backend/*.iws
+backend/*.iml
+backend/*.ipr
+backend/out/
+!backend/**/src/main/**/out/
+!backend/**/src/test/**/out/
+
+# IDE - Eclipse
+backend/.apt_generated
+backend/.classpath
+backend/.factorypath
+backend/.project
+backend/.settings/
+backend/.springBeans
+backend/.sts4-cache
+
+# IDE - NetBeans
+backend/nbproject/private/
+backend/nbbuild/
+backend/dist/
+backend/nbdist/
+backend/.nb-gradle/
+
+# Logs
+backend/*.log
+backend/logs/
+
+# Test Coverage Reports
+backend/build/reports/
+backend/build/test-results/
+backend/build/jacoco/
+
+# Database
+backend/*.db
+backend/*.h2.db
+backend/data/
+backend/**/*.mv.db
+backend/**/*.lock.db
+backend/**/*.trace.db
+
+# ===========================================
+# FRONTEND (Angular)
+# ===========================================
+
+# Compiled output
+frontend/dist/
+frontend/tmp/
+frontend/out-tsc/
+frontend/bazel-out/
+
+# Node
+frontend/node_modules/
+frontend/npm-debug.log
+frontend/yarn-error.log
+frontend/package-lock.json
+
+# Angular cache
+frontend/.angular/
+
+# Test coverage
+frontend/coverage/
+
+# IDE - Visual Studio Code
+frontend/.vscode/*
+!frontend/.vscode/settings.json
+!frontend/.vscode/tasks.json
+!frontend/.vscode/launch.json
+!frontend/.vscode/extensions.json
+frontend/.history/*
+
+# IDE - IntelliJ
+frontend/.idea/
+
+# Miscellaneous
+frontend/.sass-cache/
+frontend/connect.lock
+frontend/libpeerconnection.log
+frontend/testem.log
+frontend/typings/
+frontend/__screenshots__/
+
+# ===========================================
+# DOCUMENTATION
+# ===========================================
+
+# Generated documentation
+docs/generated/
+*.pdf.bak
+*.docx
+
+# ===========================================
+# SYSTEM & GENERAL
+# ===========================================
+
+# MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ===========================================
+# SECURITY & CREDENTIALS
+# ===========================================
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+*.p12
+*.jks
+secrets.yml
+credentials.json
+
+# ===========================================
+# IDE & EDITORS (Root Level)
+# ===========================================
+
+# VS Code
+.vscode/
+
+# IntelliJ IDEA (workspace files)
+.idea/
+*.iml
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ===========================================
+# TESTING & REPORTS
+# ===========================================
+
+# Test scripts and reports (root level)
+/test-*.sh
+/test-*.js
+/package.json
+/package-lock.json
+/node_modules/
+/*.md
+!/README.md
+/message-payload.json
+/token.txt
+
+# Test output files
+/tmp/
+
+# ===========================================
+# OTHER
+# ===========================================
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.cache
+
+# Archives (usually shouldn't be in repo)
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+
+# OS generated files
+.Spotlight-V100
+.Trashes
