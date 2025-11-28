@@ -30,13 +30,10 @@ gathorapp-mono/
 cd backend
 
 # Build and test
-./gradlew clean build
+gradle clean build
 
 # Run with H2 in-memory
-./gradlew bootRun
-
-# Run with PostgreSQL
-./gradlew bootRun --args='--spring.profiles.active=prod'
+gradle bootRun
 ```
 
 Backend available at: `http://localhost:8080`
@@ -68,6 +65,7 @@ Frontend available at: `http://localhost:4200`
 - `chat` - Real-time chat via WebSocket (auto-deactivation)
 - `notification` - Notifications with Observer Pattern
 - `voucher` - Voucher system with QR code
+- `report` - Report system 
 - `reward` - Event rewards
 - `review` - Review system
 - `pattern/strategy` - Strategy Pattern for user limits
@@ -97,17 +95,17 @@ Frontend available at: `http://localhost:4200`
 cd backend
 
 # Run all tests
-./gradlew test
+gradle test
 
 # Coverage report (JaCoCo)
-./gradlew jacocoTestReport
+gradle jacocoTestReport
 # Report: backend/build/reports/jacoco/test/html/index.html
 
 # Coverage verification (min 60%)
-./gradlew jacocoTestCoverageVerification
+gradle jacocoTestCoverageVerification
 ```
 
-Currently: **103 tests** with **80.6% pass rate** (83 passing, 20 failing)
+Currently: **585 tests** with **100% pass rate**
 
 ## Documentation
 
@@ -118,18 +116,20 @@ Complete technical documentation is available in `docs/`:
 ```bash
 cd docs
 
-# Generate PDF documentation (Windows)
+python generate-pdf.bat
+
+# Windows wrapper
 generate-pdf.bat
 
-# Generate PDF documentation (Unix/Linux/macOS)
+# Unix/Linux/macOS wrapper
 ./generate-pdf.sh
 ```
 
 **Requirements:** Pandoc 3.8+ and XeLaTeX (MiKTeX/MacTeX/TeXLive)
 
 **Generated files:**
-- `pdf/GATHORAPP.pdf` - Main technical documentation
-- `pdf/*.pdf` - UML diagrams (8 files)
+- `docs/pdf/GATHORAPP.pdf` - Main technical documentation
+- `docs/pdf/*.pdf` - UML diagrams (7 files)
 
 See `docs/README.md` for compilation details.
 
@@ -185,15 +185,15 @@ DataSeeder automatically creates:
 - Reviews
 
 Default credentials:
-- Admin: `admin@gathorapp.com` / `admin123`
-- Business: `business1@example.com` / `password`
-- Premium: `premium1@example.com` / `password`
-- User: `user1@example.com` / `password`
+- Admin: `admin@gathorapp.com` / `password123`
+- Business: `business1@example.com` / `password123`
+- Premium: `premium1@example.com` / `password123`
+- User: `user1@example.com` / `password123`
 
 ## Key Features
 
-1. **Event Management** (Business only)
-   - Creation with geolocation
+1. **Event Management**
+   - Creation (Business only)
    - Nearby search with radius
    - Map visualization
 
